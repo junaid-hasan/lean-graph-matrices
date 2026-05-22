@@ -23,18 +23,31 @@ The result is `det(B₀[S]) = 1 ∨ det(B₀[S]) = -1`.
 
 ## Blocked by
 
-- Blocked by `issues/001-signed-incidence-matrix.md`
-- Blocked by `issues/004-spanning-tree-fintype-leaf.md`
+- Blocked by `issues/001-signed-incidence-matrix.md` ✓ (completed)
+- Blocked by `issues/004-spanning-tree-fintype-leaf.md` ✓ (completed)
 
 ## User stories addressed
 
 - User story 7: determinantal lemma for spanning trees
 
+## Progress notes (2026-05-22 iteration)
+
+- [x] `treeParent_edge_injective`: fully proved using Walk.copy, IsPath.getVert_injOn, and path uniqueness
+- [x] `leaf_row_single_nonzero`: fully proved using Set.ncard_eq_one (from Nat.card = 1) + treeParent_edge_injective
+- [x] `edgeEmbedding`: defined via treeParent_edge_injective (noncomputable, uses walks)
+- [ ] `det_factor_row_single`: STILL SORRIED. Key missing lemma: if a matrix row r has only M[r][r] ≠ 0, then det = M[r][r] * det(minor). Proof sketch: Leibniz formula + Perm.subtypeCongr bijection between permutations fixing r and permutations of I\{r}.
+- [ ] `signedInc_det_tree`: STILL SORRIED. Will use det_factor_row_single + leaf induction on |V|.
+- [ ] `#eval` smoke tests: not yet
+
 ## Implementation notes
 
-- The leaf row has a single non-zero entry — use `Matrix.det_expand_row` or expand via Laplace expansion
-- After removing the leaf and its edge, the remaining subgraph is still a tree — this follows because removing a leaf from a tree produces a tree
-- The sign (±1) comes from the row/column index of the leaf — don't need to determine the exact sign, just that it's ±1
-- The `edgeEmbedding` function (extracting an order-embedding of edges from a spanning tree) may need to be defined or adapted from the existing `edgeChoiceGraph` in `MatrixTreeThm.lean`
-- The induction can use `Nat` recursion on `Fintype.card V` or structural induction on the tree itself
-- Need to handle the `n=1` edge case (single vertex, no edges): the reduced Laplacian is `0×0`, determinant = 1 (empty product). There are no leaves, but the statement is vacuously true since `|V|-1 = 0` edges
+- The `treeParent_edge_injective` proof uses a helper lemma `h_getVert_inv` for transporting getVert across a start-vertex equality. The core argument: if x = parent(y) and y = parent(x), then px.getVert 0 = px.getVert 2, contradicting IsPath.getVert_injOn.
+- The `leaf_row_single_nonzero` proof uses `Nat.card_coe_set_eq` to convert the hleaf condition to Set.ncard, then Set.ncard_eq_one to get a singleton. The unique neighbor can't be both parent of v and j.val unless v = j.
+- `det_factor_row_single` is a standard linear algebra lemma. The cleanest approach: use `det_apply` (Leibniz formula), split the sum over permutations into those fixing r and those not, show the non-fixing ones give 0, and use `Perm.subtypeCongr` to relate the fixing ones to permutations of I\{r}.
+- `signedInc_det_tree` then follows by induction on card V: base case (empty index set → det=1), inductive step (find leaf, factor determinant, apply IH to minor).
+
+## Next steps
+
+1. Submit `det_factor_row_single` to Aristotle (cloud ATP) for automated proof
+2. Once that compiles, complete `signedInc_det_tree` via induction
+3. Add `#eval` smoke tests on triangle and house graph
