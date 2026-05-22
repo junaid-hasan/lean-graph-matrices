@@ -8,6 +8,7 @@ import LeanGraphMatrices.CauchyBinet
 universe u v
 
 variable {V : Type} [Fintype V] [LinearOrder V] [DecidableEq V]
+variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
 /-- placeholder for set of spanning trees of a graph -/
 -- here we take all edge-subsets of size N - 1, where N = number of vertices
@@ -21,10 +22,10 @@ def redLapMatrix [DecidableEq V] (G : SimpleGraph V) [DecidableRel G.Adj] [AddGr
 
 /-- placeholder for signed incidence matrix of a graph -/
 -- TODO: define signed incidence matrix
-noncomputable def signIncMatrix (G : SimpleGraph V) : Matrix V (Sym2 V) ℤ :=
+noncomputable def signIncMatrix (G : SimpleGraph V) [DecidableRel G.Adj] : Matrix V (Sym2 V) ℤ :=
   G.incMatrix ℤ
 
-noncomputable def redSignIncMatrix (G : SimpleGraph V) (q : V) : Matrix {v : V // v ≠ q} (Sym2 V) ℤ :=
+noncomputable def redSignIncMatrix (G : SimpleGraph V) [DecidableRel G.Adj] (q : V) : Matrix {v : V // v ≠ q} (Sym2 V) ℤ :=
   let inc : {v : V // v ≠ q} → V := fun x => x
   (signIncMatrix G).submatrix inc id
 
