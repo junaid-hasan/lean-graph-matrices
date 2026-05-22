@@ -139,25 +139,68 @@ lemma leaf_row_single_nonzero (T : SpanningTree G) (q : V) (v : {v : V // v ≠ 
 Helper lemma: if a row `r` of a matrix `M` (indexed by fintype `n`) has
 `M r r = c` and `M r j = 0` for `j ≠ r`, then `det M = c * det M_sub`
 where `M_sub` is the matrix with row `r` and column `r` removed.
+
+PROVIDED SOLUTION
+Use the Leibniz formula `det_apply`:
+  det M = ∑ σ : Perm n, (sign σ : ℤ) • ∏ i, M (σ i) i
+
+Split the sum into permutations fixing r and those not fixing r.
+
+For σ NOT fixing r: let j := σ.symm r. Then j ≠ r (since σ r ≠ r).
+The factor M (σ j) j = M r j = 0 by hzero. So the product is 0.
+
+For σ fixing r: σ r = r, so M (σ r) r = M r r = c.
+The permutations fixing r are in bijection with Perm {x // x ≠ r}
+via `Perm.subtypeCongr (1 : Perm {x // x = r})`.
+
+Define f : Perm {x // x ≠ r} → Perm n by
+  f(τ) = Perm.subtypeCongr (1 : Perm {x // x = r}) τ
+Then:
+- sign (f τ) = sign τ (by `Equiv.Perm.sign_subtypeCongr`)
+- For i = r: f τ r = r, factor = M r r = c
+- For i ≠ r: f τ i = τ ⟨i, hi⟩ and the factor is M_sub (τ ⟨i, hi⟩) ⟨i, hi⟩
+  where M_sub := M.submatrix Subtype.val Subtype.val
+
+Thus (sign σ : ℤ) • ∏ i, M (σ i) i = (sign τ : ℤ) • (c • ∏ x, M_sub (τ x) x).
+Summing over τ gives c * det M_sub.
+
+Use `Finset.sum_bij` or `Finset.sum_equiv` with this bijection.
 -/
 lemma det_factor_row_single {n : Type*} [Fintype n] [DecidableEq n]
     (M : Matrix n n ℤ) (r : n) (c : ℤ)
     (hdiag : M r r = c) (hzero : ∀ j, j ≠ r → M r j = 0) :
     M.det = c * ((Matrix.submatrix M (fun x : {x // x ≠ r} => x.val)
       (fun x : {x // x ≠ r} => x.val)).det) := by
-  -- This is a standard linear algebra fact: expanding along a row with a single non-zero entry
-  -- at the diagonal position yields determinant = entry * determinant of minor
-  -- The proof uses the Leibniz formula with permutation decomposition via Perm.subtypeCongr
   sorry
 
+/-- The determinant of the reduced signed incidence submatrix for a spanning tree is ±1.
+
+PROVIDED SOLUTION
+Let I := {v : V // v ≠ q}, M := (reducedSignedIncMatrix G q).submatrix id (edgeEmbedding T q).
+Induction on `Fintype.card V`.
+
+Base case |V| ≤ 1: then I is empty (every vertex equals q). The determinant of the
+empty matrix is 1. Return `Or.inl rfl`.
+
+Inductive step |V| ≥ 2: use `exists_leaf` from issue 004 to get a leaf v ≠ q.
+Let vi : I be the subtype element for v.
+
+- By `leaf_row_single_nonzero`, M vi j = 0 for all j ≠ vi.
+- The diagonal M vi vi = ±1 (by checking the linear order on V).
+- Apply `det_factor_row_single` to get: det M = M[vi][vi] * det(minor)
+  where minor is the submatrix with row vi and column vi removed.
+- The minor is indexed by {x : I // x ≠ vi}, which is equivalent to
+  {w : V // w ≠ q ∧ w ≠ v}. This corresponds to the tree T with v removed.
+- Since removing a leaf yields a tree on |V|-1 vertices, the induction hypothesis
+  (applied to the subgraph of T.Tree with vertex v deleted) gives det(minor) = ±1.
+- Therefore det M = (±1) * (±1) = ±1.
+
+For the induction to work, we need that the submatrix after removing vi
+is exactly the matrix for the subtree (T without v). This follows because
+edgeEmbedding restricted to vertices ≠ v is the same as the edgeEmbedding
+for the subtree.
+-/
 theorem signedInc_det_tree (T : SpanningTree G) (q : V) :
     ((reducedSignedIncMatrix G q).submatrix id (edgeEmbedding T q)).det = 1 ∨
     ((reducedSignedIncMatrix G q).submatrix id (edgeEmbedding T q)).det = -1 := by
-  -- Proof sketch: induction on |V|.
-  -- Base: |V| ≤ 1 → I = {v ≠ q} is empty → det(empty) = 1.
-  -- Step: |V| ≥ 2 → find leaf v ≠ q via exists_leaf.
-  -- By leaf_row_single_nonzero, row v has single non-zero entry (diagonal = ±1).
-  -- By det_factor_row_single, det = diag_entry * det(minor).
-  -- The minor is the matrix for the tree with v removed, which by IH is ±1.
-  -- Hence det = (±1) * (±1) = ±1.
   sorry
