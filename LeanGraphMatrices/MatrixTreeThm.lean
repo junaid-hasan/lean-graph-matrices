@@ -105,13 +105,8 @@ theorem matrix_tree_theorem [LinearOrder (Sym2 V)] (G : SimpleGraph V) [Fintype 
   intro q
   -- expand reduced Laplacian matrix as self-product of reduced incidence matrix
   rw [redLapMatrix_incMatrix_prod]
-  -- apply Cauchy-Binet
-  rw [Matrix.det_mul']
-  -- simplify matrix expression
-  simp_rw [← Matrix.transpose_submatrix]
-  simp_rw [Matrix.det_transpose]
-  -- apply the incidence-matrix-minor lemmas
-  -- simp_rw [redIncMatrix_submatrix_det_tree]
+  -- apply Cauchy-Binet (use AlgebraicCombinatorics.CauchyBinet.cauchyBinet via transport lemma)
+  -- NOTE: need to write a transport lemma bridging Fin n to arbitrary fintypes
   sorry
 
 
