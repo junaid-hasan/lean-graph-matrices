@@ -36,19 +36,18 @@ noncomputable def redSignIncMatrix (G : SimpleGraph V) [DecidableRel G.Adj] (q :
       - B₀[S].det is equal to 0 otherwise -/
 def edgeChoiceGraph {q : V} (S : {v : V // v ≠ q} → (Sym2 V)) := SimpleGraph.fromEdgeSet (Set.image S Set.univ)
 
--- TODO: similar to above
-lemma redIncMatrix_submatrix_det_hasCycle (G : SimpleGraph V) (q : V) [Fintype G.edgeSet] (S : {v : V // v ≠ q} ↪ Sym2 V) : ¬(SimpleGraph.IsAcyclic (edgeChoiceGraph S)) → ((redSignIncMatrix G q).submatrix id S).det = 0 :=
+-- Placeholder: proof omitted (to be filled in issues 005, 006)
+lemma redIncMatrix_submatrix_det_hasCycle (G : SimpleGraph V) (q : V) [DecidableRel G.Adj] [Fintype G.edgeSet] (S : {v : V // v ≠ q} ↪ Sym2 V) : ¬(SimpleGraph.IsAcyclic (edgeChoiceGraph S)) → ((redSignIncMatrix G q).submatrix id S).det = 0 :=
   sorry
 
--- TODO: similar to above
-lemma redIncMatrix_submatrix_det_tree (G : SimpleGraph V) (q : V) [Fintype G.edgeSet] (S : {v : V // v ≠ q} ↪ Sym2 V) : SimpleGraph.IsTree (edgeChoiceGraph S) → ((redSignIncMatrix G q).submatrix id S).det ∈ ({1, -1} : Finset ℤ) := by
+lemma redIncMatrix_submatrix_det_tree (G : SimpleGraph V) (q : V) [DecidableRel G.Adj] [Fintype G.edgeSet] (S : {v : V // v ≠ q} ↪ Sym2 V) : SimpleGraph.IsTree (edgeChoiceGraph S) → ((redSignIncMatrix G q).submatrix id S).det ∈ ({1, -1} : Finset ℤ) := by
   sorry
 
 lemma isTree_iff_acyclic_and_card {V : Type} {G : SimpleGraph V} [Finite V] : G.IsTree ↔ G.IsAcyclic ∧ Nat.card ↑G.edgeSet + 1 = Nat.card V := by
   sorry
 
 -- TODO: image of S should contain edges of G;
-lemma redIncMatrix_submatrix_det (G : SimpleGraph V) (q : V) [Fintype G.edgeSet] (S : {v : V // v ≠ q} ↪ Sym2 V) : ((redSignIncMatrix G q).submatrix id S).det ∈ ({1, -1, 0} : Finset ℤ) := by
+lemma redIncMatrix_submatrix_det (G : SimpleGraph V) (q : V) [DecidableRel G.Adj] [Fintype G.edgeSet] (S : {v : V // v ≠ q} ↪ Sym2 V) : ((redSignIncMatrix G q).submatrix id S).det ∈ ({1, -1, 0} : Finset ℤ) := by
   let H := edgeChoiceGraph S
   simp only [Int.reduceNeg, ne_eq, Finset.mem_insert, Finset.mem_singleton]
   by_cases htree : H.IsTree

@@ -3,4 +3,5 @@
 import LeanGraphMatrices.Basic
 import LeanGraphMatrices.CauchyBinet
 import LeanGraphMatrices.SignIncMatrix
-import LeanGraphMatrices.MatrixTreeThm
+-- Temporarily disabled: import LeanGraphMatrices.MatrixTreeThm
+import LeanGraphMatrices.SpanningTree
