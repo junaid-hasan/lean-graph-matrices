@@ -6,3 +6,4 @@ import LeanGraphMatrices.SignIncMatrix
 -- Temporarily disabled: import LeanGraphMatrices.MatrixTreeThm
 import LeanGraphMatrices.SpanningTree
 import LeanGraphMatrices.TreeDet
+import LeanGraphMatrices.NonTreeDet
