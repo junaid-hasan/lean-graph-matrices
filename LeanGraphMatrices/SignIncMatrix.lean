@@ -1,5 +1,6 @@
 import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.Combinatorics.SimpleGraph.IncMatrix
+import Mathlib.Combinatorics.SimpleGraph.LapMatrix
 import Mathlib.Data.Sym.Sym2
 
 open Matrix SimpleGraph Sym2
@@ -118,3 +119,129 @@ instance : DecidableRel houseGraph.Adj :=
 
 #eval! signedIncMatrix houseGraph (3 : Fin 5) s((0 : Fin 5), (1 : Fin 5))
 -- expected: 0
+
+
+section LaplacianProduct
+
+variable [Fintype V] [DecidableRel G.Adj]
+
+/-- For any vertex `i` and edge `e`, the signed incidence matrix entry squared
+    equals the (unoriented) incidence matrix entry. Both are `1` if `e` is incident
+    to `i` and `0` otherwise — the sign (±1) squares away. -/
+lemma signedIncMatrix_sq_eq_incMatrix (i : V) (e : Sym2 V) :
+    (signedIncMatrix G i e)^2 = (G.incMatrix ℤ) i e := by
+  by_cases h : e ∈ G.incidenceSet i
+  · rw [G.incMatrix_of_mem_incidenceSet h]
+    -- Decompose e into s(a,b) and use the entry lemmas
+    rcases Quot.exists_rep e with ⟨p, he⟩
+    -- p : V × V, he : Quot.mk (Sym2.Rel V) p = e
+    have he_s : s(p.1, p.2) = e := by
+      simpa using he
+    rw [← he_s]
+    rw [← he_s] at h
+    rw [mk'_mem_incidenceSet_iff] at h
+    rcases h with ⟨hadj, hi⟩
+    rcases hi with (hi_eq_a | hi_eq_b)
+    · -- hi_eq_a: i = p.1
+      subst hi_eq_a
+      by_cases hle : p.1 ≤ p.2
+      · rw [signedIncMatrix_entry_fst G hadj hle]; norm_num
+      · have hle' : p.2 ≤ p.1 := le_of_not_ge hle
+        rw [Sym2.eq_swap (a := p.1) (b := p.2), signedIncMatrix_entry_snd G hadj.symm hle']; norm_num
+    · -- hi_eq_b: i = p.2
+      subst hi_eq_b
+      by_cases hle : p.1 ≤ p.2
+      · rw [signedIncMatrix_entry_snd G hadj hle]; norm_num
+      · have hle' : p.2 ≤ p.1 := le_of_not_ge hle
+        rw [Sym2.eq_swap (a := p.1) (b := p.2), signedIncMatrix_entry_fst G hadj.symm hle']; norm_num
+  · rw [G.incMatrix_of_notMem_incidenceSet h, signedIncMatrix_entry_not_incident G h]
+    norm_num
+
+/-- For distinct vertices `i ≠ j` with `G.Adj i j`, the product of signed incidence
+    entries for edge `e` is `-1` if `e = s(i,j)` and `0` otherwise. This captures
+    that the two endpoints of an edge have opposite signs. -/
+lemma signedIncMatrix_mul_of_adj {i j : V} (hij : i ≠ j) (hadj : G.Adj i j) (e : Sym2 V) :
+    signedIncMatrix G i e * signedIncMatrix G j e =
+    if e = s(i, j) then (-1 : ℤ) else 0 := by
+  by_cases he : e = s(i, j)
+  · subst he
+    by_cases hle : i ≤ j
+    · rw [signedIncMatrix_entry_fst G hadj hle, signedIncMatrix_entry_snd G hadj hle]
+      norm_num
+    · have hle' : j ≤ i := le_of_not_ge hle
+      rw [Sym2.eq_swap (a := i) (b := j)]
+      rw [signedIncMatrix_entry_snd G hadj.symm hle', signedIncMatrix_entry_fst G hadj.symm hle']
+      norm_num
+  · -- e ≠ s(i,j): at least one endpoint is not incident
+    by_cases hinc_i : e ∈ G.incidenceSet i
+    · have h_not_inc_j : e ∉ G.incidenceSet j := by
+        intro hinc_j
+        apply he
+        have mem_inter : e ∈ G.incidenceSet i ∩ G.incidenceSet j := ⟨hinc_i, hinc_j⟩
+        rw [G.incidenceSet_inter_incidenceSet_of_adj hadj, Set.mem_singleton_iff] at mem_inter
+        exact mem_inter
+      rw [signedIncMatrix_entry_not_incident G h_not_inc_j, mul_zero]
+      simp [he]
+    · rw [signedIncMatrix_entry_not_incident G hinc_i, zero_mul]
+      simp [he]
+
+/-- For distinct, non-adjacent vertices `i ≠ j`, the product of signed incidence
+    entries for any edge `e` is always `0`, since no edge is incident to both. -/
+lemma signedIncMatrix_mul_of_not_adj {i j : V} (hij : i ≠ j) (hnadj : ¬ G.Adj i j) (e : Sym2 V) :
+    signedIncMatrix G i e * signedIncMatrix G j e = 0 := by
+  -- The intersection of incidence sets is empty
+  have h_inter_empty : G.incidenceSet i ∩ G.incidenceSet j = ∅ :=
+    G.incidenceSet_inter_incidenceSet_of_not_adj hnadj hij
+  by_cases hinc_i : e ∈ G.incidenceSet i
+  · have h_not_inc_j : e ∉ G.incidenceSet j := by
+      intro hinc_j
+      have : e ∈ (∅ : Set (Sym2 V)) := by
+        rw [← h_inter_empty]
+        exact ⟨hinc_i, hinc_j⟩
+      simp at this
+    rw [signedIncMatrix_entry_not_incident G h_not_inc_j, mul_zero]
+  · rw [signedIncMatrix_entry_not_incident G hinc_i, zero_mul]
+
+/-- The Laplacian matrix equals the signed incidence matrix times its transpose. -/
+lemma lapMatrix_eq_signedInc_mul_transpose :
+    G.lapMatrix ℤ = signedIncMatrix G * (signedIncMatrix G)ᵀ := by
+  ext i j
+  simp only [Matrix.mul_apply, Matrix.transpose_apply,
+    lapMatrix, degMatrix, adjMatrix, Matrix.diagonal, Matrix.sub_apply, Matrix.of_apply]
+  by_cases hij : i = j
+  · subst j
+    -- LHS: (G.degree i : ℤ) = sum of incident indicator
+    -- RHS: ∑ e, (signedIncMatrix G i e)^2
+    rw [if_pos rfl, if_neg (G.loopless.irrefl i), sub_zero]
+    have hsum : (∑ e : Sym2 V, (signedIncMatrix G i e)^2) = (G.degree i : ℤ) := by
+      calc
+        (∑ e : Sym2 V, (signedIncMatrix G i e)^2) = (∑ e : Sym2 V, (G.incMatrix ℤ) i e) :=
+          Finset.sum_congr rfl (fun e _ => signedIncMatrix_sq_eq_incMatrix G i e)
+        _ = (G.degree i : ℤ) := by simp [G.sum_incMatrix_apply]
+    simpa [sq] using hsum.symm
+  · simp [hij]
+    by_cases hadj : G.Adj i j
+    · -- LHS: 0 - 1 = -1
+      -- RHS: ∑ e, signedIncMatrix G i e * signedIncMatrix G j e
+      simp [hadj]
+      rw [Finset.sum_congr rfl (fun e _ => signedIncMatrix_mul_of_adj G hij hadj e)]
+      simp
+    · -- LHS: 0 - 0 = 0
+      simp [hadj]
+      rw [Finset.sum_congr rfl (fun e _ => signedIncMatrix_mul_of_not_adj G hij hadj e)]
+      simp
+
+/-- The reduced Laplacian matrix equals the reduced signed incidence matrix times its transpose.
+    This follows directly from the full version by restricting rows and columns. -/
+lemma redLapMatrix_eq_reducedSignedInc_mul_transpose (q : V) :
+    (G.lapMatrix ℤ).submatrix (fun x : {v // v ≠ q} => x.val) (fun x : {v // v ≠ q} => x.val) =
+    reducedSignedIncMatrix G q * (reducedSignedIncMatrix G q)ᵀ := by
+  ext i j
+  simp [reducedSignedIncMatrix, Matrix.submatrix_apply, Matrix.mul_apply, Matrix.transpose_apply,
+    lapMatrix_eq_signedInc_mul_transpose G]
+
+end LaplacianProduct
+
+/-- Smoke test: verify `lapMatrix = B * Bᵀ` on the house graph. -/
+example : (houseGraph.lapMatrix ℤ) = (signedIncMatrix houseGraph * (signedIncMatrix houseGraph)ᵀ) := by
+  decide

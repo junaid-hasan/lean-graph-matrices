@@ -4,6 +4,9 @@ import Mathlib.Combinatorics.SimpleGraph.IncMatrix
 import Mathlib.Combinatorics.SimpleGraph.Acyclic
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 import LeanGraphMatrices.CauchyBinet
+import LeanGraphMatrices.SignIncMatrix
+
+open Matrix
 
 universe u v
 
@@ -20,33 +23,13 @@ def redLapMatrix [DecidableEq V] (G : SimpleGraph V) [DecidableRel G.Adj] [AddGr
   let inc : {v : V // v ≠ q} → V := fun x => x
   (G.lapMatrix ℤ).submatrix inc inc
 
-/-- placeholder for signed incidence matrix of a graph -/
--- TODO: define signed incidence matrix
-noncomputable def signIncMatrix (G : SimpleGraph V) [DecidableRel G.Adj] : Matrix V (Sym2 V) ℤ :=
-  G.incMatrix ℤ
-
-noncomputable def redSignIncMatrix (G : SimpleGraph V) [DecidableRel G.Adj] (q : V) : Matrix {v : V // v ≠ q} (Sym2 V) ℤ :=
+/-- The reduced signed incidence matrix: drop the row for vertex `q`.
+    Defined here for backward compatibility; the canonical definition is
+    `SignIncMatrix.reducedSignedIncMatrix`. -/
+noncomputable def redSignIncMatrix (G : SimpleGraph V) [DecidableRel G.Adj] (q : V) :
+    Matrix {v : V // v ≠ q} (Sym2 V) ℤ :=
   let inc : {v : V // v ≠ q} → V := fun x => x
-  (signIncMatrix G).submatrix inc id
-
-
-/-- Laplacian matrix is equal to self-product of (signed) incidence matrix -/
-lemma lapMatrix_incMatrix_prod (G : SimpleGraph V) [DecidableRel G.Adj] :
-  G.lapMatrix ℤ = (signIncMatrix G) * ((signIncMatrix G).transpose) := by
-  sorry
-
-lemma redLapMatrix_incMatrix_prod (G : SimpleGraph V) [DecidableRel G.Adj] (q : V) :
-  (redLapMatrix G q) = (redSignIncMatrix G q) * ((redSignIncMatrix G q).transpose) := by
-  unfold redLapMatrix
-  unfold redSignIncMatrix
-  simp only [ne_eq, Matrix.transpose_submatrix]
-  -- apply lapMatrix_incMatrix_prod
-  let A := signIncMatrix G
-  rw [← Matrix.submatrix_mul A A.transpose _ id _]
-  · rw [lapMatrix_incMatrix_prod G]
-  -- prove that id map is bijective
-  · simp only [Multiset.bijective_iff_map_univ_eq_univ, id_eq, Multiset.map_id']
-
+  (signedIncMatrix G).submatrix inc id
 
 /-- determinant of spanning-tree minor of incidence matrix: if S ⊆ E(G), then
       - B₀[S].det is equal to ±1 if S forms a spanning tree
@@ -104,7 +87,8 @@ lemma redIncMatrix_submatrix_det (G : SimpleGraph V) (q : V) [Fintype G.edgeSet]
 theorem matrix_tree_theorem [LinearOrder (Sym2 V)] (G : SimpleGraph V) [Fintype G.edgeSet] [DecidableRel G.Adj] : ∀ q : V, (redLapMatrix G q).det = (spanningTreeFinset G).card := by
   intro q
   -- expand reduced Laplacian matrix as self-product of reduced incidence matrix
-  rw [redLapMatrix_incMatrix_prod]
+  unfold redLapMatrix
+  rw [redLapMatrix_eq_reducedSignedInc_mul_transpose G q]
   -- apply Cauchy-Binet (use AlgebraicCombinatorics.CauchyBinet.cauchyBinet via transport lemma)
   -- NOTE: need to write a transport lemma bridging Fin n to arbitrary fintypes
   sorry
