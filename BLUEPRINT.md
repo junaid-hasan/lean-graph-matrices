@@ -23,7 +23,7 @@ The Lean formalisation follows the **Cauchy-Binet formula**. The proof has five 
 
 4. **Count spanning trees.** The sum over all $S$ counts $1$ for each spanning tree and $0$ otherwise, so the total equals the number of spanning trees.
 
-5. **Conclude.** $\det(L_G[q]) = \#\{\text{spanning trees of } G\}$.
+5. **Conclude.** $\det(L_G[q]) = \text{number of }\{\text{spanning trees of } G\}$.
 
 ### How the code is organised
 
