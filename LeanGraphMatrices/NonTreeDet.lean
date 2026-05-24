@@ -5,7 +5,6 @@ import Mathlib.Data.Set.Card
 import Mathlib.Tactic
 
 import LeanGraphMatrices.SignIncMatrix
-import LeanGraphMatrices.SpanningTree
 
 open Matrix Finset SimpleGraph
 open Classical in
@@ -167,20 +166,20 @@ lemma signedIncMatrix_sum_over_reachable_component_eq_zero
   -- Since $e = S j$ is in the range of $S$, it must be of the form $s(a, b)$ for some $a, b \in V$.
   obtain ⟨a, b, hab⟩ : ∃ a b : V, S j = s(a, b) := by
     cases h : S j ; aesop;
-  by_cases h : a = b <;> simp_all +decide [ Finset.sum_ite ];
+  by_cases h : a = b <;> simp_all +decide;
   · unfold signedIncMatrix; aesop;
   · -- Since $a$ and $b$ are reachable from $u$, both $a$ and $b$ are in the set of vertices reachable from $u$.
     have h_reachable : (edgeGraph q S).Reachable u a ↔ (edgeGraph q S).Reachable u b := by
       have h_adj : (edgeGraph q S).Adj a b := by
         unfold edgeGraph; aesop;
       exact ⟨ fun h => h.trans ( SimpleGraph.Adj.reachable h_adj ), fun h => h.trans ( SimpleGraph.Adj.reachable h_adj.symm ) ⟩;
-    by_cases ha : (edgeGraph q S).Reachable u a <;> by_cases hb : (edgeGraph q S).Reachable u b <;> simp_all +decide [ Finset.sum_ite ];
+    by_cases ha : (edgeGraph q S).Reachable u a <;> by_cases hb : (edgeGraph q S).Reachable u b <;> simp_all +decide;
     · rw [ ← h_col_sum, Finset.sum_subset ( Finset.subset_univ _ ) ];
       intro x hx hx'; contrapose! hx'; simp_all +decide [ signedIncMatrix ] ;
       grind +splitImp;
     · refine' Finset.sum_eq_zero fun x hx => _;
       by_contra h_nonzero;
-      have := signedIncMatrix_support_subset_endpoints G s(a, b) x h_nonzero; simp_all +decide [ Sym2.eq_swap ] ;
+      have := signedIncMatrix_support_subset_endpoints G s(a, b) x h_nonzero; simp_all +decide ;
       rcases this with ( rfl | rfl ) <;> tauto
 
 end ColumnSum
@@ -212,7 +211,7 @@ theorem signedInc_det_nontree (q : V) (S : {v : V // v ≠ q} ↪ Sym2 V)
   set T := Finset.univ.filter (fun (v : {v : V // v ≠ q}) =>
     (edgeGraph q S).Reachable u v.val) with hT_def
   -- T is nonempty (u is in it)
-  have hTne : T.Nonempty := ⟨⟨u, huq⟩, by simp [hT_def, SimpleGraph.Reachable.refl]⟩
+  have hTne : T.Nonempty := ⟨⟨u, huq⟩, by simp [hT_def]⟩
   -- Step 4: apply det_zero_of_sum_rows_eq_zero
   apply det_zero_of_sum_rows_eq_zero _ T hTne
   -- Need: ∀ j, ∑ i ∈ T, M i j = 0
