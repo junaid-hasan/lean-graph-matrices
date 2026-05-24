@@ -13,8 +13,6 @@ universe u v
 variable {V : Type} [Fintype V] [LinearOrder V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
-set_option linter.unusedSectionVars false
-
 /-! ## Reduced Laplacian -/
 
 noncomputable def redLapMatrix (q : V) : Matrix {v : V // v ≠ q} {v : V // v ≠ q} ℤ :=

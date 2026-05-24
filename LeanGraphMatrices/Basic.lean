@@ -139,17 +139,16 @@ def hge : (Fin 5) → (Fin 5) → Bool
   | 1, 4 => true
   | _, _ => false
 
--- def hG : SimpleGraph (Fin 5) where
---   Adj v w := hge v w || hge w v
---   symm := by
---     dsimp [Symmetric]; decide
---   loopless := by
---     intro v h; simp [hge] at h
+def hG : SimpleGraph (Fin 5) where
+  Adj v w := hge v w || hge w v
+  symm := by
+    dsimp [Symmetric]; decide
+  loopless := ⟨fun v h => by simp [hge] at h⟩
 
--- -- seems to be required to `#eval` number of edges
--- instance : DecidableRel hG.Adj :=
---   fun a b => inferInstanceAs <| Decidable (hge a b || hge b a)
+-- seems to be required to `#eval` number of edges
+instance : DecidableRel hG.Adj :=
+  fun a b => inferInstanceAs <| Decidable (hge a b || hge b a)
 
--- #eval! hG.lapMatrix ℤ
--- -- #eval redLapMatrix' hG 1
--- #eval! (redLapMatrix' hG 1).det -- 11
+#eval! hG.lapMatrix ℤ
+-- #eval redLapMatrix' hG 1
+#eval! (redLapMatrix' hG 1).det -- 11

@@ -34,16 +34,14 @@ def houseGraph : SimpleGraph (Fin 5) where
   symm := by
     dsimp [Symmetric]
     decide
-  loopless := by
-    dsimp [Irreflexive]
-    decide
+  loopless := ⟨fun v h => by simp [hge] at h⟩
 
 -- seems to be required to `#eval` number of edges
 instance : DecidableRel houseGraph.Adj :=
   fun a b => inferInstanceAs <| Decidable (hge a b || hge b a)
 
 -- #eval houseGraph.edgeSet
-#eval houseGraph.edgeFinset -- {s(0, 1), s(0, 4), s(1, 2), s(1, 4), s(2, 3), s(3, 4)}
+#eval! houseGraph.edgeFinset -- {s(0, 1), s(0, 4), s(1, 2), s(1, 4), s(2, 3), s(3, 4)}
 
 def num_edges := houseGraph.edgeFinset.card
 #eval num_edges -- 6
@@ -53,7 +51,7 @@ def num_edges := houseGraph.edgeFinset.card
 def L := houseGraph.lapMatrix ℤ
 
 #check L
-#eval L
+#eval! L
 
 def L' : Matrix (Fin 5) (Fin 5) ℤ :=
   !![2, -1,  0,  0, -1;
@@ -61,10 +59,10 @@ def L' : Matrix (Fin 5) (Fin 5) ℤ :=
      0, -1,  2, -1,  0;
      0,  0, -1,  2, -1;
     -1, -1,  0, -1,  3]
-#eval L == L'
+#eval! L == L'
 
 #check L.det
-#eval L.det -- 0
+#eval! L.det -- 0
 
 
 /-- Reduced Laplacian matrix -/
@@ -78,33 +76,34 @@ def L0 : Matrix (Fin 4) (Fin 4) ℤ :=
   L.submatrix inc₄₅ inc₄₅
 
 #check L0
-#eval L0
+#eval! L0
 
-#eval L0.det -- 11
+#eval! L0.det -- 11
 
 -- #check Set.erase (Fin 4)
 /-- placeholder for reduced Laplacian matrix of a graph -/
-def redLapMatrix {V : Type} [Fintype V] [DecidableEq V] (G : SimpleGraph V) [DecidableRel G.Adj] [AddGroupWithOne ℤ] (q : V) : Matrix V V ℤ :=
+def redLapMatrix {V : Type} [Fintype V] [DecidableEq V] (G : SimpleGraph V) [DecidableRel G.Adj] (q : V) : Matrix V V ℤ :=
   let char_q : V → ℤ := fun (x : V) => if x = q then 1 else 0
   -- (G.lapMatrix ℤ).updateRow q char_q
   ((G.lapMatrix ℤ).updateRow q char_q).updateCol q char_q
 
--- #eval houseGraph.lapMatrix ℤ
+-- #eval! houseGraph.lapMatrix ℤ
 def L0' := redLapMatrix houseGraph 1
-#eval L0'
-#eval L0'.det
+#eval! L0'
+#eval! L0'.det
 
 /-- Set of spanning trees of G -/
 
 def hg_4edges := Finset.powersetCard 4 houseGraph.edgeFinset
 
-#eval hg_4edges
-#eval hg_4edges.card
+#eval! hg_4edges
+#eval! hg_4edges.card
 
 def G₁ : SimpleGraph (Fin 5) := SimpleGraph.fromEdgeSet {s(1, 2), s(1, 4), s(2, 3), s(3, 4)}
 
 #check G₁.IsTree
 
+/- -- incomplete proofs, commented for now
 example : ¬G₁.IsTree := by
   rw [SimpleGraph.isTree_iff_connected_and_card]
   rw [not_and]
@@ -121,3 +120,4 @@ example : T₁.IsTree := by
   · -- show that the (number of edges) = (number of vertices) - 1
     simp only [Nat.card_eq_fintype_card, Fintype.card_fin, Nat.reduceEqDiff]
     sorry
+-/
