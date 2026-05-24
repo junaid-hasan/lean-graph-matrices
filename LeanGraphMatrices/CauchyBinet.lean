@@ -1,7 +1,8 @@
 /-
-Adapted from faabian's algebraic-combinatorics project
-(https://github.com/faab1an/algebraic-combinatorics)
-Original licensed under CC BY-NC 4.0 (see ../algebraic-combinatorics/LICENSE)
+Adapted from algebraic-combinatorics
+(https://github.com/faabian/algebraic-combinatorics)
+(https://github.com/facebookresearch/algebraic-combinatorics)
+Original licensed under CC BY-NC 4.0
 -/
 import Mathlib
 
