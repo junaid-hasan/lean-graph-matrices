@@ -1,9 +1,6 @@
-import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.Combinatorics.SimpleGraph.Acyclic
-import Mathlib.Combinatorics.SimpleGraph.DegreeSum
 import Mathlib.Combinatorics.SimpleGraph.Connectivity.WalkCounting
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
-import Mathlib.Data.Finset.Basic
 import Mathlib.Tactic
 
 import LeanGraphMatrices.SignIncMatrix
@@ -76,32 +73,6 @@ lemma treeParent_edge_injective (T : SpanningTree G) (q : V) :
 /-- Embedding of non-root vertices into tree edges via the parent edge. -/
 noncomputable def edgeEmbedding (T : SpanningTree G) (q : V) : {v : V // v ≠ q} ↪ Sym2 V :=
   ⟨fun v => s(v.val, treeParent T q v), treeParent_edge_injective T q⟩
-
-/-! ## Leaf row has single non-zero entry -/
-
-/-
-For a leaf `v ≠ q`, its row in the reduced signed incidence submatrix
-    has exactly one non-zero entry (±1 at column `v`). For any `j ≠ v`,
-    `signedIncMatrix G v.val ((edgeEmbedding T q) j) = 0`.
-    `hleaf` is `Nat.card (T.Tree.neighborSet v.val) = 1`, as from `exists_leaf`.
--/
-lemma leaf_row_single_nonzero (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q})
-    (hleaf : Nat.card (T.Tree.neighborSet v.val) = 1) (j : {v : V // v ≠ q}) (hj : j ≠ v) :
-    signedIncMatrix G v.val ((edgeEmbedding T q) j) = 0 := by
-  apply signedIncMatrix_entry_not_incident;
-  simp +decide [ SimpleGraph.incidenceSet, edgeEmbedding ];
-  intro h;
-  constructor <;> intro H;
-  · exact hj ( Subtype.ext H.symm );
-  · have h_contra : j.val ∈ T.Tree.neighborSet v.val ∧ treeParent T q v ∈ T.Tree.neighborSet v.val := by
-      have h_contra : T.Tree.Adj j.val v.val := by
-        have := treeParent_adj T q j; aesop;
-      exact ⟨ by simpa [ SimpleGraph.adj_comm ] using h_contra, by simpa [ SimpleGraph.adj_comm ] using treeParent_adj T q v ⟩;
-    have h_contra : j.val = treeParent T q v := by
-      rw [ Nat.card_eq_one_iff_unique ] at hleaf;
-      exact Subtype.ext_iff.mp ( hleaf.1.elim ⟨ j.val, h_contra.1 ⟩ ⟨ treeParent T q v, h_contra.2 ⟩ );
-    have := treeParent_edge_injective T q ( show edgeEmbedding T q j = edgeEmbedding T q v from ?_ ) ; aesop;
-    unfold edgeEmbedding; aesop;
 
 /-! ## Helper lemmas for the determinantal theorem -/
 

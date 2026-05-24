@@ -1,4 +1,3 @@
-import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.Combinatorics.SimpleGraph.IncMatrix
 import Mathlib.Combinatorics.SimpleGraph.LapMatrix
 import Mathlib.Data.Sym.Sym2

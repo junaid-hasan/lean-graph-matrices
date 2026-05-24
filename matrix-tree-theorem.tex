@@ -1,0 +1,261 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\geometry{margin=1in}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Macros
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\adj}{\operatorname{adj}}
+
+\title{ORIE 6334: Bridging Continuous and Discrete Optimization\\[0.4em]
+\large Lecture 8: The Matrix-Tree Theorem}
+\author{Lecturer: David P.\ Williamson \quad Scribe: Sloan Nietert}
+\date{September 30, 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{The Matrix-Tree Theorem}
+
+In this lecture, we continue to see the usefulness of the graph Laplacian via its connection
+to yet another standard concept in graph theory: the spanning tree. Let $A[i]$ denote the
+matrix $A$ with its $i$-th row and column removed. We give two different proofs of the
+following classical result.
+
+\begin{theorem}[Kirchhoff's Matrix-Tree Theorem]
+The number of spanning trees in a graph $G$ is given by $\det(L_G[i])$, for any $i$.
+\end{theorem}
+
+\subsection*{First Proof: Induction on Vertices and Edges}
+
+For the first proof, we need the following fact.
+
+\begin{fact}
+\label{fact:det-rank1}
+Let $A \in \R^{n \times n}$ and let $E_{ii}$ be the matrix with $1$ in the $(i,i)$-th entry
+and $0$s elsewhere. Then
+\[
+  \det(A + E_{ii}) = \det(A) + \det(A[i]).
+\]
+\end{fact}
+
+\begin{proof}
+This is evident from the permutation-sum definition of the determinant,
+\[
+  \det(A) = \sum_\pi \operatorname{sgn}(\pi)\, a_{1\pi(1)} a_{2\pi(2)} \cdots a_{n\pi(n)},
+\]
+since increasing $a_{ii}$ by $1$ yields the original determinant plus a sum over all
+permutations of $[n] \setminus \{i\}$ (avoiding the $i$-th row and column), which equals
+$\det(A[i])$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem 1 (Induction)]
+We proceed by induction on the number of vertices and edges of $G$. Let $\tau(G)$ denote
+the number of spanning trees of $G$, let $G - e$ denote $G$ with edge $e$ removed, and
+let $G/e$ denote $G$ with edge $e$ contracted.
+
+\medskip
+\noindent\textbf{Base case.} If $G$ is an empty graph on two vertices, then
+\[
+  L_G = \begin{pmatrix} 0 & 0 \\ 0 & 0 \end{pmatrix},
+\]
+so $L_G[i] = [0]$ and $\det(L_G[i]) = 0$, as desired.
+
+\medskip
+\noindent\textbf{Inductive step.} If $i$ is an isolated vertex, then $G$ admits no spanning
+trees, and there are zeros along the $i$-th row and column of $L_G$. Thus
+$\det(L_G[i]) = \det(L_{G-i}) = 0$, as desired.
+
+Otherwise, there exists an edge $e = (i,j)$ incident to $i$. For any spanning tree $T$,
+either $e \in T$ or $e \notin T$. Note that $\tau(G/e)$ counts trees containing $e$, while
+$\tau(G - e)$ counts trees not containing $e$. Thus,
+\[
+  \tau(G) = \tau(G/e) + \tau(G - e).
+\]
+
+We now relate $L_G$ to $L_{G-e}$. Removing edge $e$ only affects the degree of $j$, so
+$L_G[i] = L_{G-e}[i] + E_{jj}$. By Fact~\ref{fact:det-rank1},
+\begin{align*}
+  \det(L_G[i]) &= \det(L_{G-e}[i] + E_{jj}) \\
+               &= \det(L_{G-e}[i]) + \det(L_{G-e}[i,j]) \\
+               &= \det(L_{G-e}[i]) + \det(L_G[i,j]),
+\end{align*}
+where $L_G[i,j]$ denotes $L_G$ with both the $i$-th and $j$-th rows and columns removed;
+the last equality holds because removing both rows/columns eliminates any difference between
+$L_G$ and $L_{G-e}$ for $e = (i,j)$.
+
+Next, we relate $L_G$ to $L_{G/e}$. Contracting $i$ onto $j$ gives
+$L_{G/e}[j] = L_G[i,j]$.
+
+Combining,
+\[
+  \det(L_G[i]) = \det(L_{G-e}[i]) + \det(L_{G/e}[j])
+               = \tau(G - e) + \tau(G/e) = \tau(G),
+\]
+where the second equality follows by induction. This completes the proof.
+\end{proof}
+
+\subsection*{Second Proof: Cauchy-Binet Formula}
+
+For the second proof, we use the following formula for determinants of products of
+rectangular matrices.
+
+\begin{fact}[Cauchy-Binet Formula]
+\label{fact:cauchy-binet}
+Let $A \in \R^{n \times m}$, $B \in \R^{m \times n}$ with $m \geq n$. Let $A_S$
+(resp.\ $B_S$) be the submatrix formed by taking the columns (resp.\ rows) indexed by
+$S \subseteq [m]$. Then
+\[
+  \det(AB) = \sum_{S \in \binom{[m]}{n}} \det(A_S)\,\det(B_S).
+\]
+\end{fact}
+
+Recall that $L_G = \sum_{(i,j)\in E}(e_i - e_j)(e_i - e_j)^T$. We can write $L_G = BB^T$
+where $B \in \R^{n \times m}$ has one column per edge $(i,j)$, with that column equal to
+$e_i - e_j$. (This also gives another proof that $L_G$ is positive semidefinite.) Let
+$B[i]$ denote $B$ with its $i$-th row omitted, so that $L_G[i] = B[i]\,B[i]^T$. Write
+$B_S[i]$ for $B[i]$ restricted to the columns indexed by $S \subseteq E$.
+
+The following lemma is key.
+
+\begin{lemma}
+\label{lem:det-spanning-tree}
+For $S \subseteq E$ with $|S| = n-1$,
+\[
+  |\det(B_S[i])| =
+  \begin{cases}
+    1 & \text{if } S \text{ is a spanning tree,} \\
+    0 & \text{otherwise.}
+  \end{cases}
+\]
+\end{lemma}
+
+\begin{proof}[Proof of Theorem 1 (Cauchy-Binet)]
+\begin{align*}
+  \det(L_G[i]) &= \det\!\bigl(B[i]\,B[i]^T\bigr) \\
+               &= \sum_{S \in \binom{E}{n-1}} \det(B_S[i])\,\det(B_S[i]) \\
+               &= \tau(G),
+\end{align*}
+where the second equality follows from the Cauchy-Binet formula (Fact~\ref{fact:cauchy-binet}),
+and the third from Lemma~\ref{lem:det-spanning-tree}.
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{lem:det-spanning-tree}]
+Without loss of generality, direct the edges of $B_S[i]$ arbitrarily; changing
+the direction of an edge only flips the sign of the determinant.
+
+\medskip
+\noindent\textbf{$S$ is not a spanning tree.} Then $S$ contains a cycle. Direct the edges
+around the cycle; summing the corresponding columns of $B_S[i]$ yields the zero vector.
+Hence the columns are linearly dependent and $\det(B_S[i]) = 0$.
+
+\medskip
+\noindent\textbf{$S$ is a spanning tree.} We proceed by induction on $n$.
+
+\emph{Base case} ($n = 2$): We have
+\[
+  B_S = \begin{pmatrix} 1 \\ -1 \end{pmatrix},
+\]
+so $B_S[i] = \pm 1$ and $|\det(B_S[i])| = 1$.
+
+\emph{Inductive case}: Suppose the lemma holds for graphs on $n-1$ vertices. Let $j \neq i$
+be a leaf of the spanning tree $S$, and let $(k,j)$ be the unique edge incident to $j$.
+Permute rows and columns so that $(k,j)$ is the last column and $j$ is the last row (possibly
+flipping the sign of the determinant, which is immaterial). Then $B_S[i]$ has the form
+\[
+  B_S[i] = \left(
+    \begin{array}{ccc|c}
+     & & & 0 \\
+     & \ast & & \vdots \\
+     & & & 0 \\
+    \hline
+    0 & \cdots & 0 & -1
+    \end{array}
+  \right).
+\]
+Expanding along the last row gives
+\[
+  |\det(B_S[i])| = |\det(B_{S\setminus\{(k,j)\}}[i,j])| = 1,
+\]
+where the last equality follows by induction, since $S \setminus \{(k,j)\}$ is a spanning
+tree on the vertex set without $j$.
+\end{proof}
+
+\section{Consequences of the Matrix-Tree Theorem}
+
+Given a square matrix $A \in \R^{n \times n}$, let $A_{ij}$ be the matrix with row $i$
+and column $j$ removed (so $A[i] = A_{ii}$). Define the \emph{cofactor matrix}
+$C = (c_{ij})$ with $c_{ij} = (-1)^{i+j}\det(A_{ij})$, and the \emph{adjugate}
+$\adj(A) = C^T$.
+
+\begin{fact}
+\label{fact:adjugate}
+$A\,\adj(A) = \det(A)\,I$.
+\end{fact}
+
+By the Matrix-Tree Theorem, the $(i,i)$ cofactor of $L_G$ equals $\tau(G)$. In fact,
+every cofactor does.
+
+\begin{theorem}
+Every cofactor of $L_G$ equals $\tau(G)$, so that
+\[
+  \adj(L_G) = \tau(G)\,J,
+\]
+where $J$ is the all-ones matrix.
+\end{theorem}
+
+\begin{proof}
+If $G$ is disconnected, then $\tau(G) = 0$ and $\lambda_2(L_G) = 0$, so $\operatorname{rank}(L_G) \leq n-2$.
+Hence $\det((L_G)_{ij}) = 0$ and $\adj(L_G) = 0$, as desired.
+
+If $G$ is connected, Fact~\ref{fact:adjugate} gives $L_G\,\adj(L_G) = 0$ (since
+$\det(L_G) = 0$). Because $G$ is connected, the only eigenvectors of $L_G$ with
+eigenvalue $0$ are multiples of $\mathbf{1}$, so every column of $\adj(L_G)$ must be
+a multiple of $\mathbf{1}$. The $(i,i)$ entry of the $i$-th column is $\tau(G)$, so the
+$i$-th column must equal $\tau(G)\,\mathbf{1}$. The result follows.
+\end{proof}
+
+\begin{theorem}
+Let $0 = \lambda_1 \leq \lambda_2 \leq \cdots \leq \lambda_n$ be the eigenvalues of
+$L_G$. Then
+\[
+  \tau(G) = \frac{1}{n}\prod_{i=2}^{n} \lambda_i.
+\]
+\end{theorem}
+
+\begin{proof}
+If $G$ is disconnected, $\lambda_2 = 0$ and $\tau(G) = 0$, so the result holds. Otherwise,
+we examine the linear term of the characteristic polynomial in two ways.
+
+On one hand, since $\lambda_1 = 0$,
+\[
+  \det(\lambda I - L_G) = (\lambda - \lambda_1)(\lambda - \lambda_2)\cdots(\lambda - \lambda_n)
+  = \lambda(\lambda - \lambda_2)\cdots(\lambda - \lambda_n),
+\]
+so the coefficient of $\lambda^1$ is $(-1)^{n-1}\prod_{i=2}^n \lambda_i$.
+
+On the other hand, using $\det(A + B) = \sum_{S \subseteq [n]} \det(A_S)$ (where $A_S$
+has rows indexed by $S$ replaced by the corresponding rows of $B$), with $A = \lambda I$
+and $B = -L_G$, the linear term in $\lambda$ is
+\[
+  \sum_{\substack{S \subseteq [n] \\ |S| = n-1}} \det((\lambda I)_S)
+  = (-1)^{n-1}\sum_{i=1}^{n} \det(L_G[i])
+  = (-1)^{n-1} \cdot n \cdot \tau(G).
+\]
+
+Equating the two expressions yields $\tau(G) = \dfrac{1}{n}\displaystyle\prod_{i=2}^{n}\lambda_i$.
+\end{proof}
+
+\end{document}
