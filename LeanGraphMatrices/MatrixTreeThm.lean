@@ -82,9 +82,9 @@ lemma cauchyBinet_reindex_sq {n : ℕ} (M : Matrix (Fin n) J ℤ)
     have h_det_eq : (M.submatrix id (T.orderEmbOfFin hT.2)).det = (M.submatrix id (eJ.symm ∘ S.orderEmbOfFin (by simpa using Finset.mem_powersetCard.mp hS |>.2))).det * Equiv.Perm.sign τ := by
       rw [ Matrix.det_apply', Matrix.det_apply' ]
       rw [ Finset.sum_mul ]
-      rw [ ← Equiv.sum_comp ( Equiv.mulRight τ ) ] ; simp +decide [ hτ, mul_assoc, mul_comm, mul_left_comm ]
-      exact Finset.sum_congr rfl fun σ _ => by rw [ ← Equiv.prod_comp ( Equiv.symm τ ) ] ; simp +decide [ mul_assoc, mul_comm, mul_left_comm ]
-    cases' Int.units_eq_one_or ( Equiv.Perm.sign τ ) with h h <;> simp_all +decide [ sq, mul_assoc ]
+      rw [ ← Equiv.sum_comp ( Equiv.mulRight τ ) ] ; simp +decide [hτ, mul_assoc]
+      exact Finset.sum_congr rfl fun σ _ => by rw [ ← Equiv.prod_comp ( Equiv.symm τ ) ] ; simp [mul_comm]
+    cases' Int.units_eq_one_or ( Equiv.Perm.sign τ ) with h h <;> simp_all +decide [sq]
     · rfl
     · rfl
 
@@ -121,6 +121,7 @@ section SubmatrixHelpers
 
 variable {I' J' : Type*} [Fintype I'] [DecidableEq I'] [DecidableEq J']
 
+omit [DecidableEq I'] [DecidableEq J'] in
 /-- Two injections with the same image differ by a permutation. -/
 lemma exists_perm_of_image_eq
     (f g : I' ↪ J') (h_img : Set.range f = Set.range g) :
@@ -132,6 +133,7 @@ lemma exists_perm_of_image_eq
     intro i j hij; have := hτ₁ i; have := hτ₁ j; aesop
   exact ⟨ Equiv.ofBijective τ ⟨ hτ_inj, Finite.injective_iff_surjective.mp hτ_inj ⟩, fun i => Eq.symm ( hτ₁ i ) ⟩
 
+omit [DecidableEq J'] in
 /-- Reindexing columns by a permutation changes det by sign; squaring cancels. -/
 lemma det_submatrix_sq_eq_of_comp_perm {n : Type*} [Fintype n] [DecidableEq n]
     {R : Type*} [CommRing R]
@@ -150,6 +152,7 @@ section SubmatrixDetValue
 
 variable [Fintype G.edgeSet] [LinearOrder (Sym2 V)] (q : V)
 
+omit [Fintype ↑G.edgeSet] [LinearOrder (Sym2 V)] in
 /-- If the edges form a spanning tree, det² = 1. -/
 lemma signedInc_submatrix_det_sq_tree (f : {v : V // v ≠ q} ↪ Sym2 V)
     (hf_edges : ∀ i, f i ∈ G.edgeSet) (htree : (edgeGraph q f).IsTree) :
@@ -182,6 +185,7 @@ lemma signedInc_submatrix_det_sq_tree (f : {v : V // v ≠ q} ↪ Sym2 V)
     obtain ⟨ τ, hτ ⟩ := this; use τ.symm; ext i; simp +decide [ hτ ]
   grind +suggestions
 
+omit [Fintype ↑G.edgeSet] [LinearOrder (Sym2 V)] in
 /-- If the edges don't form a spanning tree, det² = 0. -/
 lemma signedInc_submatrix_det_sq_nontree (f : {v : V // v ≠ q} ↪ Sym2 V)
     (hntree : ¬(edgeGraph q f).IsTree) :
@@ -202,18 +206,20 @@ variable [LinearOrder (Sym2 V)] [Fintype G.edgeSet]
 If f sends some index to a non-edge of G, then the column of the reduced signed
     incidence matrix is zero, hence the submatrix has a zero column and det = 0.
 -/
+omit [LinearOrder (Sym2 V)] [Fintype ↑G.edgeSet] in
 lemma det_zero_of_non_edge (q : V) (f : {v : V // v ≠ q} → Sym2 V)
     (i : {v : V // v ≠ q}) (hi : f i ∉ G.edgeSet) :
     ((reducedSignedIncMatrix G q).submatrix id f).det = 0 := by
   rw [ Matrix.det_eq_zero_of_column_eq_zero ];
   exact i;
-  intro j; unfold reducedSignedIncMatrix; simp +decide [ hi ] ;
+  intro j; unfold reducedSignedIncMatrix; simp +decide;
   convert signedIncMatrix_entry_not_incident _ _;
   exact fun h => hi <| by simpa using h.1;
 
 /-
 `det(M.submatrix eI.symm g)² = det(M.submatrix id (g ∘ eI))²`
 -/
+omit [Fintype V] [LinearOrder V] [DecidableEq V] [LinearOrder (Sym2 V)] in
 lemma det_sq_transport {I : Type*} [Fintype I] [DecidableEq I]
     (M : Matrix I (Sym2 V) ℤ)
     (g : Fin (Fintype.card I) → Sym2 V) :
@@ -245,6 +251,7 @@ noncomputable def spanningTreeToEdgeFinset
 /-
 The forward map is injective: spanning trees with the same edge finset are equal.
 -/
+omit [LinearOrder V] [DecidableEq V] [DecidableRel G.Adj] [LinearOrder (Sym2 V)] in
 lemma spanningTreeToEdgeFinset_injective :
     Function.Injective (spanningTreeToEdgeFinset G) := by
   intro T₁ T₂ h;
@@ -256,6 +263,7 @@ lemma spanningTreeToEdgeFinset_injective :
 /-
 The forward map is surjective.
 -/
+omit [LinearOrder V] [DecidableRel G.Adj] [LinearOrder (Sym2 V)] in
 lemma spanningTreeToEdgeFinset_surjective :
     Function.Surjective (spanningTreeToEdgeFinset G) := by
   intro ⟨ S, hS₁, hS₂, hS₃ ⟩;
@@ -294,10 +302,6 @@ lemma cauchyBinet_term_tree [LinearOrder (Sym2 V)]
   generalize_proofs at *;
   convert signedInc_submatrix_det_sq_tree G q f _ _ using 1;
   · convert det_sq_transport _ _ using 2;
-    · infer_instance;
-    · infer_instance;
-    · infer_instance;
-    · infer_instance;
   · aesop;
   · convert htree using 1;
     have h_range : Set.range f = T := by
@@ -312,7 +316,7 @@ lemma cauchyBinet_term_nontree [LinearOrder (Sym2 V)]
     ((reducedSignedIncMatrix G q).submatrix
       (Fintype.equivFin {v : V // v ≠ q}).symm (T.orderEmbOfFin h)).det ^ 2 = 0 := by
   convert det_sq_transport ( reducedSignedIncMatrix G q ) ( T.orderEmbOfFin h ) using 1;
-  by_cases hT : ∀ e ∈ T, e ∈ G.edgeFinset <;> simp_all +decide [ signedInc_submatrix_det_sq_nontree ];
+  by_cases hT : ∀ e ∈ T, e ∈ G.edgeFinset <;> simp_all +decide;
   · convert signedInc_submatrix_det_sq_nontree G q ( ⟨ T.orderEmbOfFin h ∘ ( Fintype.equivFin { v // ¬v = q } ), ?_ ⟩ ) ?_ |> Eq.symm using 1
     all_goals generalize_proofs at *;
     · exact Function.Injective.comp ( T.orderEmbOfFin h |>.injective ) ( Fintype.equivFin _ |>.injective );
@@ -333,6 +337,7 @@ lemma cauchyBinet_term_nontree [LinearOrder (Sym2 V)]
 /-
 The edgeFinset of a spanning tree lies in the appropriate powersetCard.
 -/
+omit [LinearOrder V] in
 lemma spanningTree_edgeFinset_mem_powersetCard
     [LinearOrder (Sym2 V)] (G : SimpleGraph V) [Fintype G.edgeSet] [DecidableRel G.Adj]
     (q : V) (T : SpanningTree G) :
@@ -352,7 +357,7 @@ lemma summand_at_spanningTree
       (Fintype.equivFin {v : V // v ≠ q}).symm
       (T.Tree.edgeFinset.orderEmbOfFin h)).det ^ 2 = 1 := by
   convert cauchyBinet_term_tree G q ( T.Tree.edgeFinset ) h _ _;
-  · simp +decide [ SimpleGraph.edgeSet_mono T.subG ];
+  · simp +decide;
     exact SimpleGraph.edgeSet_mono T.subG;
   · simp +decide [ SimpleGraph.coe_edgeFinset, T.isTree ]
 
@@ -363,7 +368,7 @@ If a finset T in powersetCard is not the edgeFinset of any spanning tree,
 lemma summand_zero_of_not_spanningTree
     [LinearOrder (Sym2 V)] (G : SimpleGraph V) [Fintype G.edgeSet] [DecidableRel G.Adj]
     (q : V) (T : Finset (Sym2 V))
-    (hT : T ∈ (Finset.univ : Finset (Sym2 V)).powersetCard (Fintype.card {v : V // v ≠ q}))
+    (_hT : T ∈ (Finset.univ : Finset (Sym2 V)).powersetCard (Fintype.card {v : V // v ≠ q}))
     (hT_not : T ∉ Finset.image (fun S : SpanningTree G => S.Tree.edgeFinset) Finset.univ)
     (h : T.card = Fintype.card {v : V // v ≠ q}) :
     ((reducedSignedIncMatrix G q).submatrix
@@ -373,8 +378,8 @@ lemma summand_zero_of_not_spanningTree
   refine' Finset.mem_image.mpr ⟨ ⟨ SimpleGraph.fromEdgeSet T, _, _ ⟩, Finset.mem_univ _, _ ⟩ <;> simp_all +decide;
   all_goals simp_all +decide [ Set.subset_def, SimpleGraph.edgeFinset ];
   simp_all +decide [ Finset.disjoint_left, Sym2.diagSet ];
-  intro e he; specialize hT_not; have := hT_not.1 e he; simp_all +decide [ SimpleGraph.mem_edgeSet ] ;
-  exact fun h => by have := hT_not.1 e he; exact absurd this ( by simp +decide [ h, SimpleGraph.mem_edgeSet ] ) ;
+  intro e he; specialize hT_not; have := hT_not.1 e he; simp_all +decide;
+  exact fun h => by have := hT_not.1 e he; exact absurd this ( by simp +decide [h] ) ;
 
 lemma cauchyBinet_sum_eq_spanningTree_card [LinearOrder (Sym2 V)]
     (G : SimpleGraph V) [Fintype G.edgeSet] [DecidableRel G.Adj] (q : V) :

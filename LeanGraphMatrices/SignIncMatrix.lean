@@ -122,8 +122,9 @@ instance : DecidableRel houseGraph.Adj :=
 
 section LaplacianProduct
 
-variable [Fintype V] [DecidableRel G.Adj]
+variable [Fintype V]
 
+omit [Fintype V] in
 /-- For any vertex `i` and edge `e`, the signed incidence matrix entry squared
     equals the (unoriented) incidence matrix entry. Both are `1` if `e` is incident
     to `i` and `0` otherwise — the sign (±1) squares away. -/
@@ -156,10 +157,11 @@ lemma signedIncMatrix_sq_eq_incMatrix (i : V) (e : Sym2 V) :
   · rw [G.incMatrix_of_notMem_incidenceSet h, signedIncMatrix_entry_not_incident G h]
     norm_num
 
+omit [Fintype V] in
 /-- For distinct vertices `i ≠ j` with `G.Adj i j`, the product of signed incidence
     entries for edge `e` is `-1` if `e = s(i,j)` and `0` otherwise. This captures
     that the two endpoints of an edge have opposite signs. -/
-lemma signedIncMatrix_mul_of_adj {i j : V} (hij : i ≠ j) (hadj : G.Adj i j) (e : Sym2 V) :
+lemma signedIncMatrix_mul_of_adj {i j : V} (_hij : i ≠ j) (hadj : G.Adj i j) (e : Sym2 V) :
     signedIncMatrix G i e * signedIncMatrix G j e =
     if e = s(i, j) then (-1 : ℤ) else 0 := by
   by_cases he : e = s(i, j)
@@ -184,6 +186,7 @@ lemma signedIncMatrix_mul_of_adj {i j : V} (hij : i ≠ j) (hadj : G.Adj i j) (e
     · rw [signedIncMatrix_entry_not_incident G hinc_i, zero_mul]
       simp [he]
 
+omit [Fintype V] in
 /-- For distinct, non-adjacent vertices `i ≠ j`, the product of signed incidence
     entries for any edge `e` is always `0`, since no edge is incident to both. -/
 lemma signedIncMatrix_mul_of_not_adj {i j : V} (hij : i ≠ j) (hnadj : ¬ G.Adj i j) (e : Sym2 V) :

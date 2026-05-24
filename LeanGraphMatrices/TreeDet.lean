@@ -19,6 +19,7 @@ noncomputable def treeParent (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q
   let p := (T.isTree.existsUnique_path v.val q).exists.choose
   p.getVert 1
 
+omit [Fintype V] [LinearOrder V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma treeParent_adj (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) :
     T.Tree.Adj v.val (treeParent T q v) := by
   dsimp [treeParent]
@@ -33,6 +34,7 @@ lemma treeParent_adj (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) :
   have hadj := Walk.adj_getVert_succ p (by omega)
   simpa [p.getVert_zero] using hadj
 
+omit [Fintype V] [LinearOrder V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma treeParent_edge_mem (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) :
     s(v.val, treeParent T q v) ∈ T.Tree.edgeSet :=
   (T.Tree.mem_edgeSet).mpr (treeParent_adj T q v)
@@ -43,6 +45,7 @@ lemma treeParent_edge_mem (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) 
 The map `v ↦ s(v, parent(v))` from non-root vertices to tree edges is injective.
     This uses the uniqueness of simple paths in a tree.
 -/
+omit [Fintype V] [LinearOrder V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma treeParent_edge_injective (T : SpanningTree G) (q : V) :
     Function.Injective (fun (v : {v : V // v ≠ q}) => s(v.val, treeParent T q v)) := by
   intro x y h
@@ -80,6 +83,7 @@ noncomputable def edgeEmbedding (T : SpanningTree G) (q : V) : {v : V // v ≠ q
 The entry M(w, i) of the tree submatrix is zero unless w.val is an endpoint
     of the edge s(i.val, treeParent T q i).
 -/
+omit [Fintype V] in
 lemma submatrix_entry_eq_zero_of_not_endpoint (T : SpanningTree G) (q : V)
     (w i : {v : V // v ≠ q})
     (hw1 : w.val ≠ i.val) (hw2 : w.val ≠ treeParent T q i) :
@@ -91,6 +95,7 @@ lemma submatrix_entry_eq_zero_of_not_endpoint (T : SpanningTree G) (q : V)
 The diagonal entry M(i, i) = signedIncMatrix G i.val s(i.val, treeParent T q i)
     is ±1, since i.val is an endpoint of its parent edge.
 -/
+omit [Fintype V] in
 lemma submatrix_diag_pm_one (T : SpanningTree G) (q : V) (i : {v : V // v ≠ q}) :
     signedIncMatrix G i.val ((edgeEmbedding T q) i) = 1 ∨
     signedIncMatrix G i.val ((edgeEmbedding T q) i) = -1 := by
@@ -103,6 +108,7 @@ lemma submatrix_diag_pm_one (T : SpanningTree G) (q : V) (i : {v : V // v ≠ q}
 noncomputable def treeDepth (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) : ℕ :=
   (T.isTree.existsUnique_path v.val q).exists.choose.length
 
+omit [Fintype V] [LinearOrder V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma treeDepth_pos (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) :
     0 < treeDepth T q v := by
   have h_len_pos : ∀ {u v : V}, u ≠ v → ∀ p : T.Tree.Walk u v, p.length > 0 := by
@@ -112,6 +118,7 @@ lemma treeDepth_pos (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q}) :
 /-
 The parent of a vertex at depth 1 is q.
 -/
+omit [Fintype V] [LinearOrder V] [DecidableEq V] [DecidableRel G.Adj] in
 lemma treeParent_eq_q_of_depth_one (T : SpanningTree G) (q : V) (v : {v : V // v ≠ q})
     (hd : treeDepth T q v = 1) : treeParent T q v = q := by
   convert T.isTree.existsUnique_path v.val q |> ExistsUnique.exists |> Classical.choose_spec |> fun h => ?_;
@@ -125,6 +132,7 @@ Key combinatorial lemma: if σ is a permutation of non-root vertices such that
     for every i, σ(i).val ∈ {i.val, treeParent T q i}, then σ = id.
     This uses the tree structure (acyclicity) to rule out non-trivial permutations.
 -/
+omit [LinearOrder V] [DecidableRel G.Adj] in
 lemma perm_eq_id_of_endpoint_condition (T : SpanningTree G) (q : V)
     (σ : Equiv.Perm {v : V // v ≠ q})
     (h : ∀ i, (σ i).val = i.val ∨ (σ i).val = treeParent T q i) : σ = 1 := by

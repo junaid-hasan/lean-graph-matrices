@@ -32,12 +32,12 @@ lemma det_zero_of_sum_rows_eq_zero {n : Type*} [DecidableEq n] [Fintype n]
   -- Fix any vertex $v₀ \in S$ (use $hne.choose$).
   set v₀ := hne.choose with hv₀_def
   have hsum_zero : ∑ i ∈ S, A i = (0 : n → R) := by
-    ext j; simp +decide [ hsum ] ;
+    ext j; simp +decide [hsum];
   -- By repeatedly applying Matrix.det_updateRow_add_self, we can show that the determinant of the matrix obtained by adding all rows in S to row v₀ is equal to the determinant of A.
   have h_det_updateRow_add_self : ∀ (T : Finset n), (∀ i ∈ T, i ≠ v₀) → (Matrix.det (Matrix.updateRow A v₀ (A v₀ + ∑ i ∈ T, A i))) = Matrix.det A := by
     intro T hT_v₀
     induction' T using Finset.induction with i T hiT ih;
-    · simp +decide [ Matrix.updateRow_self ];
+    · simp +decide;
     · rw [ ← ih fun j hj => hT_v₀ j ( Finset.mem_insert_of_mem hj ), Finset.sum_insert hiT ];
       have h_det_updateRow_add_self : Matrix.det (Matrix.updateRow (Matrix.updateRow A v₀ (A v₀ + ∑ x ∈ T, A x)) v₀ (A v₀ + ∑ x ∈ T, A x + A i)) = Matrix.det (Matrix.updateRow A v₀ (A v₀ + ∑ x ∈ T, A x)) := by
         convert Matrix.det_updateRow_add_self _ _ using 2;
@@ -45,10 +45,10 @@ lemma det_zero_of_sum_rows_eq_zero {n : Type*} [DecidableEq n] [Fintype n]
         exact v₀;
         exact i;
         · exact Ne.symm ( hT_v₀ i ( Finset.mem_insert_self i T ) );
-        · simp +decide [ Matrix.updateRow_apply, hT_v₀ i ( Finset.mem_insert_self i T ) ];
+        · simp +decide [hT_v₀ i (Finset.mem_insert_self i T)];
       convert h_det_updateRow_add_self using 2 ; ext j ; by_cases hj : j = v₀ <;> simp +decide [ hj ] ; ring;
   convert h_det_updateRow_add_self ( S.erase v₀ ) ( fun i hi => by aesop ) |> Eq.symm using 1;
-  rw [ show ∑ i ∈ S.erase v₀, A i = -A v₀ from eq_neg_of_add_eq_zero_left <| by rw [ ← hsum_zero, ← Finset.sum_erase_add _ _ hne.choose_spec, add_comm ] ] ; simp +decide [ Matrix.det_eq_zero_of_row_eq_zero ];
+  rw [ show ∑ i ∈ S.erase v₀, A i = -A v₀ from eq_neg_of_add_eq_zero_left <| by rw [ ← hsum_zero, ← Finset.sum_erase_add _ _ hne.choose_spec, add_comm ] ] ; simp +decide;
   exact Eq.symm ( Matrix.det_eq_zero_of_row_eq_zero v₀ fun j => by simp +decide )
 
 /-! ## Graph-theoretic helpers -/
@@ -57,6 +57,7 @@ section GraphTheory
 
 variable {q : V} (S : {v : V // v ≠ q} ↪ Sym2 V)
 
+omit [LinearOrder V] in
 /-- The edge graph is not a tree implies not connected.
     Key argument: |E(H)| ≤ |V|-1 (since edgeSet ⊆ range S and |range S| = |V|-1).
     If H is connected, then it has a spanning tree with |V|-1 edges, so |E(H)| ≥ |V|-1.
@@ -99,6 +100,7 @@ If H is not connected and q : V, there exist u : V with ¬ H.Reachable q u.
     In particular, if H.Connected is false, then either V is empty (impossible since q exists)
     or there exist u,v not reachable. We can arrange one of them to be unreachable from q.
 -/
+omit [Fintype V] [LinearOrder V] [DecidableEq V] in
 lemma exists_unreachable_from_root (H : SimpleGraph V) [DecidableRel H.Adj]
     (q : V) (hNotConn : ¬ H.Connected) :
     ∃ u : V, ¬ H.Reachable q u := by
@@ -131,12 +133,14 @@ For an edge e = s(a,b) with a ≠ b, if a vertex v is not an endpoint of e,
     then signedIncMatrix G v e = 0. More precisely, signedIncMatrix G v e ≠ 0
     implies v is an endpoint of e.
 -/
+omit [Fintype V] in
 lemma signedIncMatrix_support_subset_endpoints (e : Sym2 V) (v : V)
     (hv : signedIncMatrix G v e ≠ 0) :
     v ∈ e := by
   contrapose! hv;
   exact signedIncMatrix_entry_not_incident _ ( show e ∉ G.incidenceSet v from fun h => hv <| by cases e; simp_all +decide [ SimpleGraph.incidenceSet ] )
 
+omit [Fintype V] [LinearOrder V] [DecidableEq V] in
 /-- If H = fromEdgeSet T and H.Adj a b, and H.Reachable u a, then H.Reachable u b.
     (Adjacency within the graph extends reachability.) -/
 lemma reachable_of_adj_reachable (H : SimpleGraph V) (u a b : V)
